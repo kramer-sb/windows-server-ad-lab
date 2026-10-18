@@ -1,0 +1,11 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.code-workspace
+
+# Lab artifacts (keep screenshots/logs out unless deliberately added)
+*.evtx
+*.csv
