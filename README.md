@@ -15,7 +15,7 @@ A hands-on Active Directory lab covering domain setup, Group Policy, security ev
 
 | VM | Host | Role | IP |
 | --- | --- | --- | --- |
-| DC01 | Windows host (VirtualBox) | Domain controller, DNS | 10.50.50.10 |
-| WIN11-CLIENT | Proxmox | Domain-joined client | 10.50.50.20 |
+| DC01 | Windows host (VirtualBox) | Domain controller, DNS | 10.0.0.70 |
+| WIN11-CLIENT | Proxmox | Domain-joined client | 10.0.0.75 |
 
 Full details in [`00-overview.md`](00-overview.md).

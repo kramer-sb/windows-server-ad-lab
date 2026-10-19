@@ -6,19 +6,19 @@ Splitting it this way means Proxmox only ever carries one Windows VM (the client
 
 ## Lab topology and prerequisites
 
-Both hosts sit on your existing LAN, so no VLAN or managed switch is required. The lab uses a dedicated subnet that your home network almost certainly isn't using already, so lab traffic stays logically distinct even though it rides the same physical switch: **10.50.50.0/24**. Swap this for another range if it collides with anything on your network.
+Both hosts sit on your existing LAN, so no VLAN or managed switch is required. Both VMs use static addresses from the reserved static range (10.0.0.2 to 10.0.0.100) on your existing **10.0.0.0/24** network, so they stay reachable from your other lab machines and keep internet access through the Xfinity gateway at 10.0.0.1. 10.0.0.65 is already taken by the Wazuh VM, so DC01 and WIN11-CLIENT take the next two free slots in the usual increments of 5.
 
 | VM | Host | Role | IP |
 | --- | --- | --- | --- |
-| DC01 | Windows host (VirtualBox) | Domain controller, DNS | 10.50.50.10 |
-| WIN11-CLIENT | Proxmox | Domain-joined client | 10.50.50.20 |
+| DC01 | Windows host (VirtualBox) | Domain controller, DNS | 10.0.0.70 |
+| WIN11-CLIENT | Proxmox | Domain-joined client | 10.0.0.75 |
 
 ```
  Windows host (VirtualBox)                         Proxmox host
  ┌───────────────────────┐                    ┌───────────────────────┐
  │   DC01                │   same LAN switch  │   WIN11-CLIENT        │
  │   AD DS + DNS         │◄──────────────────►│   Domain-joined       │
- │   10.50.50.10         │  10.50.50.0/24     │   10.50.50.20         │
+ │   10.0.0.70           │  10.0.0.0/24       │   10.0.0.75           │
  └───────────────────────┘                    └───────────────────────┘
         ▲                                                │
         └──────────── client's DNS points here ──────────┘
@@ -29,7 +29,7 @@ DC01's network adapter in VirtualBox should be set to **Bridged Adapter** (not N
 Things to have ready before starting:
 
 1. A Windows Server 2022 or 2025 Evaluation ISO, downloaded from the Microsoft Evaluation Center (180-day eval, no license key needed).
-2. A Windows 11 Pro or Enterprise ISO, or an existing Windows 11 VM/template on Proxmox you can clone if you already have one. Home edition can't join a domain.
+2. A Windows 11 Pro or Enterprise machine. If you already have win11-intune-lab (VM 203), do a full clone from its `clean-install-before-enroll` snapshot instead of downloading another ISO, then rename the clone to WIN11-CLIENT. Don't clone from a later snapshot, since those carry the Entra ID and Intune enrollment. Home edition can't join a domain.
 3. VirtualBox Guest Additions (for the DC VM, to make the console usable).
 4. On Proxmox, UEFI firmware (OVMF) and a vTPM enabled on the Windows 11 VM; Windows 11 won't install without both.
 

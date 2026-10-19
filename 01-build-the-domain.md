@@ -7,11 +7,11 @@ All of this runs on the Windows host, inside VirtualBox.
 3. After install, set a static IP from an elevated PowerShell prompt:
 
 ```powershell
-New-NetIPAddress -InterfaceAlias "Ethernet" -IPAddress 10.50.50.10 -PrefixLength 24
+New-NetIPAddress -InterfaceAlias "Ethernet" -IPAddress 10.0.0.70 -PrefixLength 24 -DefaultGateway 10.0.0.1
 Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses 127.0.0.1
 ```
 
-(No default gateway is required for the domain to function; add one later with `-DefaultGateway` if you want this VM to reach the internet for updates.)
+(The gateway lets DC01 reach the internet for updates. Set DNS to 127.0.0.1 now; after the AD DS and DNS roles are installed and the forest is created, add a DNS forwarder in the later step below.)
 
 4. Add the AD DS and DNS roles:
 
@@ -40,14 +40,22 @@ Add-ADGroupMember -Identity IT -Members alice
 
 Repeat for a Finance user.
 
+Then add a forwarder so DC01 can still resolve everything outside `lab.local`, including your `.lab` names from CoreDNS at 10.0.0.30 and the internet:
+
+```powershell
+Add-DnsServerForwarder -IPAddress 10.0.0.30
+```
+
+The client will use only DC01 for DNS, so this forwarder is what keeps `.lab` names and internet lookups working from the client.
+
 Now switch to Proxmox for the client:
 
-7. Create or clone the Windows 11 VM. It needs **UEFI (OVMF)** firmware, an EFI disk, and a TPM state disk (vTPM 2.0) added in the VM's Hardware tab, or Windows 11 setup will refuse to install. Attach it to vmbr0.
+7. Create or clone the Windows 11 VM. If you're cloning win11-intune-lab, use a full clone from the `clean-install-before-enroll` snapshot, then rename it to WIN11-CLIENT inside Windows (`Rename-Computer -NewName WIN11-CLIENT -Restart`) and confirm `dsregcmd /status` shows `AzureAdJoined : NO`. If you build a new VM instead, it needs **UEFI (OVMF)** firmware, an EFI disk, and a TPM state disk (vTPM 2.0) added in the VM's Hardware tab, or Windows 11 setup will refuse to install. Attach it to vmbr0.
 8. Inside the VM, set a static IP and point DNS at the DC:
 
 ```powershell
-New-NetIPAddress -InterfaceAlias "Ethernet" -IPAddress 10.50.50.20 -PrefixLength 24
-Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses 10.50.50.10
+New-NetIPAddress -InterfaceAlias "Ethernet" -IPAddress 10.0.0.75 -PrefixLength 24 -DefaultGateway 10.0.0.1
+Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses 10.0.0.70
 ```
 
 9. Confirm it can resolve the domain before joining: `Resolve-DnsName lab.local`. If that fails, stop here and check the troubleshooting file before moving on.
