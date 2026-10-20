@@ -25,3 +25,11 @@
 ## Repo
 
 Everything's committed and pushed to `github.com/kramer-sb/windows-server-ad-lab`, main branch. Pull before you start if you touched the files from another machine.
+
+## Commands 
+
+`nltest /dsgetdc:lab.local` - confirm client locates the domain controller
+
+`nltest /sc_verify:lab.local` - verifies secure channel
+
+`gpresult /r` - confirm Grup Policy is applying
